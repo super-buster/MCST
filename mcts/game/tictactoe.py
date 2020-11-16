@@ -9,8 +9,12 @@ class TicTacToeMove(object):
         # self.z_coordinate=self.dropdown()
         self.value = value
 
-    def dropdown(self):
-        pass
+    def __repr__(self):
+        return "x:{0} y:{1} v:{2}".format(
+            self.x_coordinate,
+            self.y_coordinate,
+            self.value
+        )
 
 
 class TicTacToeGameState(TwoPlayerGameState):
