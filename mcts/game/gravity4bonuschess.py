@@ -31,14 +31,6 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
         self.next_to_move = next_to_move
         self.source = move
         self.nop = np.sum(np.absolute(self.board), 0).astype(int)
-        # if move is not None:
-        #self.source.z_coordinate = self.nop[move.x_coordinate][move.y_coordinate]
-        # try:
-        #    self.board[self.source.z_coordinate][move.x_coordinate][move.y_coordinate] = move.value
-        # except IndexError as e:
-        #    print(self.source.x_coordinate,
-        # self.source.y_coordinate, self.nop)
-        #self.nop = np.sum(np.absolute(self.board), 0).astype(int)
 
     def whowin(self, *unknow):
         for item in unknow:

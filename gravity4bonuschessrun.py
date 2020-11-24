@@ -18,13 +18,21 @@ def Aifirst():
     return c_state
 
 
-def get_action(state, x, y, z):
+def get_action(state):
     try:
+        location = input("Your move(x,y): ")
+        if isinstance(location, str):
+            location = [int(n, 10) for n in location.split(",")]
+        if len(location) != 2:
+            return -1
+        x = location[0]
+        y = location[1]
         move = Gravity4bonuschessMove(x, y, -1)
     except Exception as e:
         move = -1
     if move == -1 or not state.is_move_legal(move):
         print("invalid move")
+        move = get_action(state)
     return move
 
 
@@ -43,7 +51,20 @@ def judge(state):
 
 if __name__ == "__main__":
     c_state = Aifirst()
+    print(c_state.board)
     while True:
-        print("input you move: x,y")
-        x, y = input()
+        move1 = get_action(c_state)
+        c_state = c_state.move(move1)
+        if judge(c_state) == 1:
+            break
+        root = TwoPlayersGameMonteCarloTreeSearchNode(
+            state=c_state, parent=None)
+        mcts = MonteCarloTreeSearch(root)
+        best_node = mcts.best_action(1500)
+        c_state = best_node.state
+        print("rival's move: c_state.source")
         print(c_state.board)
+        if judge(c_state) == 1:
+            break
+        elif judge(c_state) == -1:
+            continue
