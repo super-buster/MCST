@@ -62,7 +62,7 @@ if __name__ == "__main__":
         mcts = MonteCarloTreeSearch(root)
         best_node = mcts.best_action(1500)
         c_state = best_node.state
-        print("rival's move: c_state.source")
+        print("rival's move: ", c_state.source)
         print(c_state.board)
         if judge(c_state) == 1:
             break
