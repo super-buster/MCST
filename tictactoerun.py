@@ -60,7 +60,7 @@ if __name__ == "__main__":
     puiinit()
     # c_state, coordinate = AiFirst()
     # Draw(coordinate[0][0], coordinate[1][0], "o")
-    c_state = PlayerFirst()
+    c_state = AiFirst()
     # main loop
     while True:
         pygame.display.update()

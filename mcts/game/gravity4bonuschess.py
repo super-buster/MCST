@@ -1,15 +1,20 @@
 import numpy as np
+import copy
 from mcts.game.common import TwoPlayerGameState
 
 
 class Gravity4bonuschessMove(object):
-    def __init__(self, x_coordinate, y_coordinate, z_coordinate, value):
+    def __init__(self, x_coordinate, y_coordinate, value):
         self.x_coordinate = x_coordinate
         self.y_coordinate = y_coordinate
-        self.z_coordinate = z_coordinate
+        self.z_coordinate = 0
         self.value = value
 
     def __str__(self):
+        return("x:{0} y:{1} z:{2} v:{3} \n".format(
+            self.x_coordinate, self.y_coordinate, self.z_coordinate, self.value))
+
+    def __repr__(self):
         return("x:{0} y:{1} z:{2} v:{3} \n".format(
             self.x_coordinate, self.y_coordinate, self.z_coordinate, self.value))
 
@@ -22,13 +27,18 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
         if len(state.shape) != 3 or state.shape[0] != state.shape[1] or state.shape[0] != state.shape[2]:
             raise ValueError("Only 3D cube boards allowed")
         self.board = state
-        self.nop = np.sum(np.absolute(self.board), 0).astype(int)
         self.board_size = state.shape[0]
         self.next_to_move = next_to_move
-        if move is not None:
-            self.move = move
-            self.board[self.nop[move.x_coordinate][move.y_coordinate],
-                       move.x_coordinate, move.y_coordinate] = move.value
+        self.source = move
+        self.nop = np.sum(np.absolute(self.board), 0).astype(int)
+        # if move is not None:
+        #self.source.z_coordinate = self.nop[move.x_coordinate][move.y_coordinate]
+        # try:
+        #    self.board[self.source.z_coordinate][move.x_coordinate][move.y_coordinate] = move.value
+        # except IndexError as e:
+        #    print(self.source.x_coordinate,
+        # self.source.y_coordinate, self.nop)
+        #self.nop = np.sum(np.absolute(self.board), 0).astype(int)
 
     def whowin(self, *unknow):
         for item in unknow:
@@ -38,62 +48,65 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
                 return self.o
         return None
 
-    @property
+    @ property
     def game_result(self):
         '''
         check if game is over
         '''
+        # root
+        if self.source is None:
+            return None
         vertical_sum = np.sum(
-            self.board[..., self.move.x_coordinate, self.move.y_coordinate])
+            self.board[..., self.source.x_coordinate, self.source.y_coordinate])
         row_sum = np.sum(
-            self.board[self.move.z_coordinate][self.move.x_coordinate])
+            self.board[self.source.z_coordinate][self.source.x_coordinate])
         col_sum = np.sum(
-            self.board[self.move.z_coordinate][:, self.move.y_coordinate:self.move.y_coordinate+1])
+            self.board[self.source.z_coordinate][:, self.source.y_coordinate:self.source.y_coordinate+1])
 
         if self.whowin(vertical_sum, row_sum, col_sum) != None:
             return self.whowin(vertical_sum, row_sum, col_sum)
 
         # check the plane trace and diagonal
         # first judge which line
-        if self.move.z_coordinate == self.board_size:
+        if self.source.z_coordinate == self.board_size:
             trace1, trace2, trace3, trace4 = 0, 0, 0, 0
-            if self.move.x_coordinate == 0:
-                trace1 = self.board[3][0][self.move.y_coordinate] + \
-                    self.board[2][1][self.move.y_coordinate] + \
-                    self.board[1][2][self.move.y_coordinate] + \
-                    self.board[0][3][self.move.y_coordinate]
+            if self.source.x_coordinate == 0:
+                trace1 = self.board[3][0][self.source.y_coordinate] + \
+                    self.board[2][1][self.source.y_coordinate] + \
+                    self.board[1][2][self.source.y_coordinate] + \
+                    self.board[0][3][self.source.y_coordinate]
                 # 3,0,0
-                if self.move.y_coordinate == 0:
+                if self.source.y_coordinate == 0:
                     diagonal = self.board[3][0][0] + \
                         self.board[2][1][1]+self.board[1][2][2] + \
                         self.board[0][3][3]
-            if self.move.x_coordinate == 3:
-                trace2 = self.board[0][0][self.move.y_coordinate] + \
-                    self.board[1][1][self.move.y_coordinate] + \
-                    self.board[2][2][self.move.y_coordinate] + \
-                    self.board[3][3][self.move.y_coordinate]
+            if self.source.x_coordinate == 3:
+                trace2 = self.board[0][0][self.source.y_coordinate] + \
+                    self.board[1][1][self.source.y_coordinate] + \
+                    self.board[2][2][self.source.y_coordinate] + \
+                    self.board[3][3][self.source.y_coordinate]
                 # 3, 3,3
-                if self.move.y_coordinate == 3:
+                if self.source.y_coordinate == 3:
                     diagonal = self.board[3][3][3] + \
                         self.board[2][2][2]+self.board[1][1][1] + \
                         self.board[0][0][0]
-            if self.move.y_coordinate == 0:
-                trace3 = self.board[3][self.move.x_coordinate][0] +\
-                    self.board[2][self.move.x_coordinate][1] + \
-                    self.board[1][self.move.x_coordinate][2] + \
-                    self.board[0][self.move.x_coordinate][3]
+            if self.source.y_coordinate == 0:
+                trace3 = self.board[3][self.source.x_coordinate][0] +\
+                    self.board[2][self.source.x_coordinate][1] + \
+                    self.board[1][self.source.x_coordinate][2] + \
+                    self.board[0][self.source.x_coordinate][3]
                 # 3,3,0
-                if self.move.y_coordinate == 0:
+                if self.source.y_coordinate == 0:
                     diagonal = self.board[3][3][0] + \
                         self.board[2][2][1]+self.board[1][1][2] + \
                         self.board[0][0][3]
-            if self.move.y_coordinate == 3:
-                trace4 = self.board[0][self.move.x_coordinate][0] +\
-                    self.board[1][self.move.x_coordinate][1] + \
-                    self.board[2][self.move.x_coordinate][2] + \
-                    self.board[3][self.move.x_coordinate][3]
+            if self.source.y_coordinate == 3:
+                trace4 = self.board[0][self.source.x_coordinate][0] +\
+                    self.board[1][self.source.x_coordinate][1] + \
+                    self.board[2][self.source.x_coordinate][2] + \
+                    self.board[3][self.source.x_coordinate][3]
                 # 3,0,3
-                if self.move.x_coordinate == 0:
+                if self.source.x_coordinate == 0:
                     diagonal = self.board[3][0][3] + \
                         self.board[2][1][2]+self.board[1][2][1] + \
                         self.board[0][3][0]
@@ -106,7 +119,8 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
         return None
 
     def is_game_over(self):
-        return self.game_result is not None
+        result = self.game_result
+        return result is not None
 
     def is_move_legal(self, move):
         # check if correct player moves
@@ -123,21 +137,29 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
         if not y_in_range:
             return False
 
-        if move.z_coordinate >= 3:
+        if self.nop[move.x_coordinate][move.y_coordinate] > 3:
             return False
 
         # finally check if board field not occupied yet
-        return self.board[self.nop[move.x_coordinate, move.y_coordinate], move.x_coordinate, move.y_coordinate] == 0
+        return self.board[self.nop[move.x_coordinate, move.y_coordinate]][move.x_coordinate][move.y_coordinate] == 0
 
     # move and change next_to_move
-    def move(self, move):
-        if not self.is_move_legal(move):
-            raise ValueError("move " + move + " on board " +
-                             self.board + " is not legal")
+    def move(self, source):
+        if not self.is_move_legal(source):
+            print(self.nop, source)
+            raise ValueError("move is not legal")
         next_to_move = Gravity4bonuschessGameState.o if self.next_to_move == Gravity4bonuschessGameState.x else Gravity4bonuschessGameState.x
-        return Gravity4bonuschessGameState(self.board, move, next_to_move)
+        # must copy a new object,otherwise refer to the same object and cause root board be changed
+        new_board = np.copy(self.board)
+        new_source = copy.copy(source)
+        new_source.z_coordinate = self.nop[source.x_coordinate][source.y_coordinate]
+        new_board[new_source.z_coordinate][new_source.x_coordinate][new_source.y_coordinate] = new_source.value
+        return Gravity4bonuschessGameState(new_board, new_source, next_to_move)
 
     def get_legal_actions(self):
         # return the row,column tuple where the value on the board is zero
-        indices = np.where(self.nop < 3)
-        return [Gravity4bonuschessMove(x, y, self.nop[x][y], self.next_to_move) for x, y in zip(indices[0], indices[1])]
+        indices = np.where(self.nop < self.board_size)
+        if len(indices[0]) == 0:
+            return None
+        else:
+            return [Gravity4bonuschessMove(coords[0], coords[1], self.next_to_move) for coords in list(zip(indices[0], indices[1]))]

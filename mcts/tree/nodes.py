@@ -48,7 +48,10 @@ class MonteCarloTreeSearchNode(object):
         return self.children[np.argmax(choices_weights)]
 
     def rollout_policy(self, possible_moves):
-        return possible_moves[np.random.randint(len(possible_moves))]
+        try:
+            return possible_moves[np.random.randint(len(possible_moves))]
+        except ValueError as e:
+            print(len(possible_moves))
 
 
 class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
@@ -80,7 +83,7 @@ class TwoPlayersGameMonteCarloTreeSearchNode(MonteCarloTreeSearchNode):
     def expand(self):
         # remove the last value to ensure we take a different action
         action = self.untried_actions.pop()
-        next_state = self.state.move(action)
+        next_state = self.state.move(action)    
         child_node = TwoPlayersGameMonteCarloTreeSearchNode(
             next_state, parent=self
         )
