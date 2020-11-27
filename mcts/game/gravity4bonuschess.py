@@ -1,3 +1,8 @@
+######################################################################
+# ref1: https://zhuanlan.zhihu.com/p/30458774                        #
+# ref2: https://github.com/int8/monte-carlo-tree-search/tree/master/ #
+# ref3: https://zhuanlan.zhihu.com/p/59567014                        #
+######################################################################
 import numpy as np
 import copy
 from mcts.game.common import TwoPlayerGameState
@@ -54,9 +59,12 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
             self.board[self.source.z_coordinate][self.source.x_coordinate])
         col_sum = np.sum(
             self.board[self.source.z_coordinate][:, self.source.y_coordinate:self.source.y_coordinate+1])
-
-        if self.whowin(vertical_sum, row_sum, col_sum) != None:
-            return self.whowin(vertical_sum, row_sum, col_sum)
+        diag_sum_tl = (self.board[self.source.z_coordinate]).trace()
+        diag_sum_tr = (self.board[self.source.z_coordinate][::-1]).trace()
+        result = self.whowin(vertical_sum, row_sum,
+                             col_sum, diag_sum_tl, diag_sum_tr)
+        if result != None:
+            return result
 
         # check the plane trace and diagonal
         # first judge which line
@@ -104,7 +112,7 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
                         self.board[0][3][0]
             if self.whowin(trace1, trace2, trace3, trace4, diagonal) != None:
                 return self.whowin(trace1, trace2, trace3, trace4)
-        # tie
+        # draw
         if np.all(self.board != 0):
             return 0
         # if not over
@@ -149,7 +157,7 @@ class Gravity4bonuschessGameState(TwoPlayerGameState):
         return Gravity4bonuschessGameState(new_board, new_source, next_to_move)
 
     def get_legal_actions(self):
-        # return the row,column tuple where the value on the board is zero
+        # return the row,column tuple if satisfy the condition
         indices = np.where(self.nop < self.board_size)
         if len(indices[0]) == 0:
             return None
