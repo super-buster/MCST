@@ -1,3 +1,8 @@
+######################################################################
+# ref1: https://zhuanlan.zhihu.com/p/30458774                        #
+# ref2: https://github.com/int8/monte-carlo-tree-search/tree/master/ #
+# ref3: https://zhuanlan.zhihu.com/p/59567014                        #
+######################################################################
 import numpy as np
 from mcts.tree.nodes import *
 from mcts.tree.search import *
@@ -13,7 +18,7 @@ def Aifirst():
     root = TwoPlayersGameMonteCarloTreeSearchNode(
         state=initial_board_state, parent=None)
     mcts = MonteCarloTreeSearch(root)
-    best_node = mcts.best_action(1500)
+    best_node = mcts.best_action(2000)
     c_state = best_node.state
     return c_state
 
@@ -24,7 +29,7 @@ def get_action(state):
         if isinstance(location, str):
             location = [int(n, 10) for n in location.split(",")]
         if len(location) != 2:
-            return -1
+            move = -1
         x = location[0]
         y = location[1]
         move = Gravity4bonuschessMove(x, y, -1)
